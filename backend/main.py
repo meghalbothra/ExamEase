@@ -35,6 +35,9 @@ class ExplanationRequest(BaseModel):
 class ScoreRequest(BaseModel):
     user_answers: list
 
+class StudyHelpRequest(BaseModel):
+    message: str 
+
 # 1️⃣ Generate Quiz
 @app.post("/generate-quiz")
 async def generate_quiz(request: QuizRequest):
@@ -77,32 +80,24 @@ async def generate_quiz(request: QuizRequest):
         print("❌ Error:", str(e))  # ✅ Debugging
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# 2️⃣ Get AI Explanation
-@app.post("/get-explanation")
-async def get_explanation(request: ExplanationRequest):
-    prompt = f"Explain the following question and answer in simple terms:\n\nQuestion: {request.question}\nAnswer: {request.answer}"
-
+@app.post("/study-help")
+async def study_help(request: StudyHelpRequest):
+    prompt = (
+    "You are a helpful study guide. A student asks: "
+    f"\"{request.message}\". "
+    "Provide a concise, clear, and actionable answer for learning or revising the topic. "
+    "Respond in plain text with no markdown."
+)
+    
     try:
         model = genai.GenerativeModel("gemini-1.5-flash")
         response = model.generate_content(prompt)
-        return {"explanation": response.text}
-
+        help_text = response.text.strip().replace("```", "").strip()
+        return {"help": help_text}
     except Exception as e:
+        print("Error generating study help:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
-# 3️⃣ Evaluate Performance
-@app.post("/evaluate-score")
-async def evaluate_score(request: ScoreRequest):
-    prompt = f"Evaluate the user's performance based on their answers:\n{request.user_answers}\nProvide a score and feedback."
-
-    try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(prompt)
-        return {"feedback": response.text}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 # Run the API with Uvicorn
 if __name__ == "__main__":

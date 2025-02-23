@@ -9,6 +9,7 @@ import { subjects, difficulties } from './data/quizzes';
 import { fetchQuestions } from './services/api';
 import type { ParsedQuestion } from './types';
 import Image from './Assets/Frame-1.png';
+import ChatWidget from './components/ChatWidget';
 
 const QUESTION_TIMER = 30;
 
@@ -337,8 +338,13 @@ function App() {
       </div>
     );
   };
-  
-  return renderPage();
+
+  return (
+    <>
+      {renderPage()}
+      <ChatWidget />
+    </>
+  );
 }
-  
+
 export default App;
