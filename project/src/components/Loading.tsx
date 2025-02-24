@@ -1,19 +1,17 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import loadImage from '../Assets/Load.png';
-const Loading = () => {
-  const navigate = useNavigate();
-useEffect(() => {
-    const timer = setTimeout(() => {
-      navigate('/continue');
-    }, 3000);
-return () => clearTimeout(timer);
-  }, [navigate]);
-return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+
+interface LoadingProps {
+  message?: string;
+}
+
+const Loading: React.FC<LoadingProps> = ({ message = 'Loading...' }) => {
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
       <img src={loadImage} alt="Loading" className="animate-spin h-32 w-32" />
-      <div className="text-xl text-gray-700 ml-4">Loading...</div>
+      <div className="text-xl text-gray-700 mt-4">{message}</div>
     </div>
   );
 };
+
 export default Loading;
