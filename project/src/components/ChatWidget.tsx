@@ -46,7 +46,7 @@ const ChatWidget: React.FC = () => {
     setShowTypingIndicator(true);
     
     try {
-      const res = await fetch("https://examease-yka2.onrender.com/study-help", {
+      const res = await fetch("https://examease-gspj.onrender.com/study-help", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage.text })

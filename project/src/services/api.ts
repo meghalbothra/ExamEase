@@ -81,7 +81,7 @@ export interface ParsedQuestion {
   
   export async function fetchQuestions(topic: string, difficulty: string): Promise<ParsedQuestion[]> {
     try {
-      const response = await fetch('https://examease-yka2.onrender.com/generate-quiz', {
+      const response = await fetch('https://examease-gspj.onrender.com/generate-quiz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
