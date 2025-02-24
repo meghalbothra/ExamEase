@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Brain, Sparkles, Star } from 'lucide-react';
+import { BookOpen, Brain, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { QuizCard } from './components/QuizCard';
 import { ProgressBar } from './components/ProgressBar';
@@ -11,6 +11,7 @@ import { fetchQuestions } from './services/api';
 import type { ParsedQuestion } from './types';
 import Image from './Assets/Frame-1.png';
 import ChatWidget from './components/ChatWidget';
+import Loading from './components/Loading';
 
 const QUESTION_TIMER = 30;
 
@@ -33,10 +34,10 @@ function App() {
     userAnswers: {},
     timeRemaining: QUESTION_TIMER,
     quizStatus: 'idle',
-    isLoading: false
+    isLoading: false,
   });
-  
-  const [evaluationFeedback, setEvaluationFeedback] = useState<string>("");
+
+  const [evaluationFeedback, setEvaluationFeedback] = useState<string>('');
 
   // Timer: Decrease timeRemaining every second
   useEffect(() => {
@@ -52,8 +53,8 @@ function App() {
                 timeRemaining: QUESTION_TIMER,
                 userAnswers: {
                   ...prev.userAnswers,
-                  [prev.questions[prev.currentQuestionIndex].id]: null
-                }
+                  [prev.questions[prev.currentQuestionIndex].id]: null,
+                },
               };
             } else {
               return { ...prev, quizStatus: 'completed' };
@@ -68,23 +69,21 @@ function App() {
 
   const startQuiz = async () => {
     setQuizState(prev => ({ ...prev, isLoading: true, error: undefined }));
-    
     try {
       const fetchedQuestions = await fetchQuestions(selectedSubject, selectedDifficulty);
-      
       setQuizState({
         questions: fetchedQuestions,
         currentQuestionIndex: 0,
         userAnswers: {},
         timeRemaining: QUESTION_TIMER,
         quizStatus: 'in-progress',
-        isLoading: false
+        isLoading: false,
       });
     } catch (error) {
       setQuizState(prev => ({
         ...prev,
         isLoading: false,
-        error: 'Failed to load questions. Please try again.'
+        error: 'Failed to load questions. Please try again.',
       }));
     }
   };
@@ -93,7 +92,7 @@ function App() {
     const currentQuestion = quizState.questions[quizState.currentQuestionIndex];
     setQuizState(prev => ({
       ...prev,
-      userAnswers: { ...prev.userAnswers, [currentQuestion.id]: answer }
+      userAnswers: { ...prev.userAnswers, [currentQuestion.id]: answer },
     }));
   };
 
@@ -122,8 +121,8 @@ function App() {
           timeRemaining: QUESTION_TIMER,
           userAnswers: {
             ...prev.userAnswers,
-            [prev.questions[prev.currentQuestionIndex].id]: null
-          }
+            [prev.questions[prev.currentQuestionIndex].id]: null,
+          },
         };
       } else {
         return { ...prev, quizStatus: 'completed' };
@@ -140,9 +139,9 @@ function App() {
       userAnswers: {},
       timeRemaining: QUESTION_TIMER,
       quizStatus: 'idle',
-      isLoading: false
+      isLoading: false,
     });
-    setEvaluationFeedback("");
+    setEvaluationFeedback('');
   };
 
   const Header = () => (
@@ -289,13 +288,11 @@ function App() {
     }
     
     if (quizState.quizStatus === 'completed') {
-      const correctAnswers = Object.entries(quizState.userAnswers).filter(
-        ([id, answer]) => {
-          const question = quizState.questions.find(q => q.id === id);
-          return question?.correctAnswer === answer;
-        }
-      ).length;
-    
+      const correctAnswers = Object.entries(quizState.userAnswers).filter(([id, answer]) => {
+        const question = quizState.questions.find(q => q.id === id);
+        return question?.correctAnswer === answer;
+      }).length;
+
       // Construct quiz results array
       const quizResults = quizState.questions.map(q => ({
         id: q.id,
@@ -304,7 +301,7 @@ function App() {
         correctAnswer: q.correctAnswer,
         explanation: q.explanation,
       }));
-    
+
       return (
         <div className="min-h-screen bg-gradient-to-b from-purple-50 to-violet-100 animate-fadeIn">
           <Header />
@@ -321,10 +318,10 @@ function App() {
         </div>
       );
     }
-  
+
     // Quiz in progress page
     const currentQuestion = quizState.questions[quizState.currentQuestionIndex];
-  
+
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-violet-100 animate-fadeIn">
         <Header />
@@ -339,7 +336,7 @@ function App() {
               selectedAnswer={quizState.userAnswers[currentQuestion?.id]}
               timeRemaining={quizState.timeRemaining}
               onAnswerSelect={handleAnswerSelect}
-              showFeedback={false} // Change based on logic if feedback is needed
+              showFeedback={false}
               onNext={handleNextQuestion}
               onSkip={handleSkipQuestion}
             />
@@ -351,7 +348,7 @@ function App() {
 
   return (
     <>
-      {renderPage()}
+      {quizState.isLoading ? <Loading /> : renderPage()}
       <ChatWidget />
     </>
   );
