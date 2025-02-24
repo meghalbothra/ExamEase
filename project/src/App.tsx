@@ -11,6 +11,7 @@ import { fetchQuestions } from './services/api';
 import type { ParsedQuestion } from './types';
 import Image from './Assets/Frame-1.png';
 import ChatWidget from './components/ChatWidget';
+import Loading from './components/Loading';
 
 const QUESTION_TIMER = 30;
 
@@ -270,17 +271,9 @@ function App() {
                   disabled={quizState.isLoading}
                   className="bg-gradient-to-r from-violet-500 to-purple-600 text-white py-3 px-6 rounded-xl hover:opacity-90 transition-all hover:shadow-md disabled:opacity-50 flex items-center justify-center"
                 >
-                  {quizState.isLoading ? (
-                    <>
-                      <motion.div
-                        className="w-6 h-6 border-4 border-t-transparent border-white rounded-full mr-2"
-                        animate={{ rotate: 360 }}
-                        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                      />
-                      <span>Loading...</span>
-                    </>
-                  ) : 'Start Quiz'}
                 </button>
+                {quizState.isLoading ? (<Loading/>
+                  ) : 'Start Quiz'}
               </div>
             </div>
           </div>
