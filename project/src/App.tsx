@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Brain, Sparkles, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { QuizCard } from './components/QuizCard';
 import { ProgressBar } from './components/ProgressBar';
 import { QuizSummary } from './components/QuizSummary';
@@ -170,7 +171,7 @@ function App() {
                   Welcome to ExamEase
                 </h1>
                 <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-12">
-                  Challenge your knowledge with our interactive quiz and assessment system. Take quizzes on a variety of subjects, receive real-time feedback, and gain valuable insights into your performance.
+                  Challenge your knowledge with our interactive, <strong>AI-powered</strong> quiz and assessment system. Take quizzes on a variety of subjects, receive real-time feedback, and gain valuable insights into your performance.
                 </p>
               </div>
 
@@ -201,7 +202,7 @@ function App() {
                     <BookOpen className="w-10 h-10 text-violet-600 mb-4" />
                     <h3 className="text-xl font-semibold text-gray-800 mb-2">Diverse Quiz Topics</h3>
                     <p className="text-gray-600">
-                      Explore a wide range of quizzes covering various subjects to test your general knowledge.
+                      Explore a wide range of AI-based quizzes covering various subjects to test your general knowledge.
                     </p>
                   </div>
                   <div className="flex flex-col items-center text-center p-4 bg-white rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
@@ -267,9 +268,18 @@ function App() {
                 <button
                   onClick={startQuiz}
                   disabled={quizState.isLoading}
-                  className="bg-gradient-to-r from-violet-500 to-purple-600 text-white py-3 px-6 rounded-xl hover:opacity-90 transition-all hover:shadow-md disabled:opacity-50"
+                  className="bg-gradient-to-r from-violet-500 to-purple-600 text-white py-3 px-6 rounded-xl hover:opacity-90 transition-all hover:shadow-md disabled:opacity-50 flex items-center justify-center"
                 >
-                  {quizState.isLoading ? 'Loading...' : 'Start Quiz'}
+                  {quizState.isLoading ? (
+                    <>
+                      <motion.div
+                        className="w-6 h-6 border-4 border-t-transparent border-white rounded-full mr-2"
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                      />
+                      <span>Loading...</span>
+                    </>
+                  ) : 'Start Quiz'}
                 </button>
               </div>
             </div>

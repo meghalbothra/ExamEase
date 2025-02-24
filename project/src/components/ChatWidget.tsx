@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Loader2, Sparkles, Bot, User } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface StudyHelpResponse {
   help: string;
@@ -85,13 +86,15 @@ const ChatWidget: React.FC = () => {
 
   return (
     <>
-      {/* Floating Button with Enhanced Animation */}
-      <button
+      {/* Floating Button with Flickering Effect and Increased Base Size for Small Screens */}
+      <motion.button
         onClick={() => setIsOpen(!isOpen)}
+        animate={{ opacity: [1, 0.6, 1] }}
+        transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
         className={`
           fixed bottom-4 right-4 sm:bottom-8 sm:right-8
           bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600
-          text-white rounded-full p-4 sm:p-5
+          text-white rounded-full p-5 sm:p-5
           shadow-[0_8px_30px_rgb(124,58,237,0.3)]
           hover:shadow-[0_8px_35px_rgb(124,58,237,0.4)]
           hover:scale-105 active:scale-95
@@ -102,14 +105,14 @@ const ChatWidget: React.FC = () => {
         `}
       >
         {isOpen ? (
-          <X className="w-5 h-5 sm:w-6 sm:h-6" />
+          <X className="w-6 h-6" />
         ) : (
           <>
-            <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 group-hover:hidden transition-all" />
-            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 hidden group-hover:block transition-all" />
+            <MessageCircle className="w-6 h-6 group-hover:hidden transition-all" />
+            <Sparkles className="w-6 h-6 hidden group-hover:block transition-all" />
           </>
         )}
-      </button>
+      </motion.button>
 
       {/* Enhanced Chat Interface */}
       <div className={`
