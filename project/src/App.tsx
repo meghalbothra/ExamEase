@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Brain, Sparkles, Star } from 'lucide-react';
+import { BookOpen, Brain, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { QuizCard } from './components/QuizCard';
 import { ProgressBar } from './components/ProgressBar';
@@ -271,9 +271,19 @@ function App() {
                   disabled={quizState.isLoading}
                   className="bg-gradient-to-r from-violet-500 to-purple-600 text-white py-3 px-6 rounded-xl hover:opacity-90 transition-all hover:shadow-md disabled:opacity-50 flex items-center justify-center"
                 >
+                  {quizState.isLoading ? (
+                    <>
+                      <motion.div
+                        className="w-6 h-6 border-4 border-t-transparent border-white rounded-full mr-2"
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                      />
+                      <span>Loading...</span>
+                    </>
+                  ) : (
+                    'Start Quiz'
+                  )}
                 </button>
-                {quizState.isLoading ? (<Loading/>
-                  ) : 'Start Quiz'}
               </div>
             </div>
           </div>
@@ -332,7 +342,7 @@ function App() {
               selectedAnswer={quizState.userAnswers[currentQuestion?.id]}
               timeRemaining={quizState.timeRemaining}
               onAnswerSelect={handleAnswerSelect}
-              showFeedback={false} // Change based on logic if feedback is needed
+              showFeedback={false}
               onNext={handleNextQuestion}
               onSkip={handleSkipQuestion}
             />
@@ -344,7 +354,7 @@ function App() {
 
   return (
     <>
-      {renderPage()}
+      {quizState.isLoading ? <Loading message="Loading..." /> : renderPage()}
       <ChatWidget />
     </>
   );

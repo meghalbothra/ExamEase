@@ -7,9 +7,9 @@ interface LoadingProps {
 
 const Loading: React.FC<LoadingProps> = ({ message = 'Loading...' }) => {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <img src={loadImage} alt="Loading" className="animate-spin h-32 w-32" />
-      <div className="text-xl text-gray-700 mt-4">{message}</div>
+    <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-r from-violet-500 to-purple-600">
+      <img src={loadImage} alt="Loading" className="animate-spin h-40 w-40 rounded-full" />
+      <div className="text-2xl text-white mt-4">{message}</div>
     </div>
   );
 };
