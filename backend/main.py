@@ -1,146 +1,229 @@
 import os
 import json
-import google.generativeai as genai
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from dotenv import load_dotenv
-from fastapi.middleware.cors import CORSMiddleware
 import uuid
 
-session_context = {}  # To store context for each session
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
-# Load environment variables
+from google import genai
+
+# -------------------------
+# Load Environment Variables
+# -------------------------
 load_dotenv()
+
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# Configure Google Gemini API
-genai.configure(api_key=GOOGLE_API_KEY)
+if not GOOGLE_API_KEY:
+    raise ValueError("GOOGLE_API_KEY not found!")
+
+client = genai.Client(api_key=GOOGLE_API_KEY)
+
+MODEL_NAME = "gemini-2.5-flash-lite"
+
+session_context = {}
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust this to specific domains in production
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Ensures POST is allowed
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# -------------------------
 # Request Models
+# -------------------------
+
 class QuizRequest(BaseModel):
     topic: str
     difficulty: str
+
 
 class ExplanationRequest(BaseModel):
     question: str
     answer: str
 
+
 class ScoreRequest(BaseModel):
     user_answers: list
 
+
 class StudyHelpRequest(BaseModel):
-    message: str 
+    message: str
 
-# 1️⃣ Generate Quiz
-@app.post("/generate-quiz")
-async def generate_quiz(request: QuizRequest):
-    print("📩 Received Request:", request.dict())  # ✅ Debugging
 
-    prompt = (
-        f"Generate 10 multiple-choice questions for {request.topic} at {request.difficulty} difficulty. "
-        "Provide the response in **raw JSON format** (no markdown, no extra text) with the following structure:\n"
-        "{\n"
-        '  "questions": [\n'
-        '    {\n'
-        '      "id": "unique_question_id",\n'
-        '      "question": "The actual question text?",\n'
-        '      "options": ["option1", "option2", "option3", "option4"],\n'
-        '      "correctAnswer": "Correct option text",\n'
-        '      "explanation": "Brief explanation of the correct answer."\n'
-        '    },\n'
-        "    ... (repeat for 10 questions) ...\n"
-        "  ]\n"
-        "}"
+# -------------------------
+# Helper
+# -------------------------
+
+def generate_text(prompt: str) -> str:
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=prompt,
     )
 
+    return response.text
+
+
+# -------------------------
+# Generate Quiz
+# -------------------------
+
+@app.post("/generate-quiz")
+async def generate_quiz(request: QuizRequest):
+
+    prompt = f"""
+Generate exactly 10 multiple choice questions on "{request.topic}" at "{request.difficulty}" difficulty.
+
+Return ONLY valid JSON.
+
+Format:
+
+{{
+  "questions":[
+    {{
+      "id":"1",
+      "question":"Question",
+      "options":[
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correctAnswer":"Option A",
+      "explanation":"Explanation"
+    }}
+  ]
+}}
+
+Do not include markdown.
+Do not include ```json.
+Return only JSON.
+"""
+
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        response = model.generate_content(prompt)
 
-        print("📜 Generated Response:", response.text)  # ✅ Debugging
+        text = generate_text(prompt)
 
-        # ✅ Remove Markdown formatting (if present)
-        clean_json = response.text.strip().replace("```json", "").replace("```", "").strip()
+        clean = (
+            text.replace("```json", "")
+            .replace("```", "")
+            .strip()
+        )
 
-        # ✅ Parse the JSON response
-        quiz_data = json.loads(clean_json)
+        return json.loads(clean)
 
-        return quiz_data  # ✅ Return structured JSON
-    except json.JSONDecodeError as json_err:
-        print("❌ JSON Parsing Error:", str(json_err))  # ✅ Debugging
-        raise HTTPException(status_code=500, detail="Invalid JSON format from AI response.")
     except Exception as e:
-        print("❌ Error:", str(e))  # ✅ Debugging
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# -------------------------
+# Summary Insights
+# -------------------------
 
 @app.post("/summary-insights")
-async def study_help(request: StudyHelpRequest):
-    prompt = (
-    "You are a focused quiz evaluator. A student has completed a quiz, and you are here to provide a concise summary. "
-    f"Based on the student's performance on the following topics: \"{request.message}\", "
-    "briefly identify their strong and weak areas. Suggest quick and actionable steps for improvement. "
-    "Keep your response short, clear, and helpful. Respond in plain text with no markdown."
-)
-    
+async def summary_insights(request: StudyHelpRequest):
+
+    prompt = f"""
+You are a quiz evaluator.
+
+Student performance:
+
+{request.message}
+
+Briefly mention:
+
+- strengths
+- weaknesses
+- improvement tips
+
+Keep response short.
+"""
+
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        response = model.generate_content(prompt)
-        help_text = response.text.strip().replace("```", "").strip()
-        return {"help": help_text}
+
+        return {
+            "help": generate_text(prompt).strip()
+        }
+
     except Exception as e:
-        print("Error generating study help:", str(e))
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# -------------------------
+# Study Help
+# -------------------------
 
 @app.post("/study-help")
 async def study_help(request: StudyHelpRequest):
-    prompt = (
-    "You are a helpful study guide. A student asks: "
-    f"\"{request.message}\". "
-    "Provide a concise, clear, and actionable answer for learning or revising the topic. "
-    "Respond in plain text with no markdown."
-)
-    
+
+    prompt = f"""
+Student asks:
+
+{request.message}
+
+Give a concise explanation.
+
+No markdown.
+"""
+
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        response = model.generate_content(prompt)
-        help_text = response.text.strip().replace("```", "").strip()
-        return {"help": help_text}
+
+        return {
+            "help": generate_text(prompt).strip()
+        }
+
     except Exception as e:
-        print("Error generating study help:", str(e))
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# -------------------------
+# AI Tutor
+# -------------------------
 
 @app.post("/ai-tutor")
-async def study_help(request: StudyHelpRequest):
-    prompt = (
-    "You are an AI tutor helping a student achieve their learning goals. "
-    f"Based on the student's input: \"{request.message}\", "
-    "analyze their strengths, weaknesses, and planned actions. "
-    "Provide a clear, concise study plan with prioritized topics, effective study techniques, and actionable steps to address weaknesses. "
-    "Keep the response brief and straightforward in plain text."
-    "Respond in plain text with no markdown."
-)
+async def ai_tutor(request: StudyHelpRequest):
+
+    prompt = f"""
+Student input:
+
+{request.message}
+
+Create a concise study plan with:
+
+- strengths
+- weaknesses
+- priority topics
+- study strategy
+
+No markdown.
+"""
 
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        response = model.generate_content(prompt)
-        help_text = response.text.strip().replace("```", "").strip()
-        return {"help": help_text}
+
+        return {
+            "help": generate_text(prompt).strip()
+        }
+
     except Exception as e:
-        print("Error generating study help:", str(e))
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
-# Run the API with Uvicorn
+
+# -------------------------
+# Run
+# -------------------------
+
 if __name__ == "__main__":
+
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
