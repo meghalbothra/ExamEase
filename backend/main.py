@@ -5,6 +5,9 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+import uuid
+
+session_context = {}  # To store context for each session
 
 # Load environment variables
 load_dotenv()
@@ -61,7 +64,7 @@ async def generate_quiz(request: QuizRequest):
     )
 
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content(prompt)
 
         print("📜 Generated Response:", response.text)  # ✅ Debugging
@@ -80,6 +83,25 @@ async def generate_quiz(request: QuizRequest):
         print("❌ Error:", str(e))  # ✅ Debugging
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/summary-insights")
+async def study_help(request: StudyHelpRequest):
+    prompt = (
+    "You are a focused quiz evaluator. A student has completed a quiz, and you are here to provide a concise summary. "
+    f"Based on the student's performance on the following topics: \"{request.message}\", "
+    "briefly identify their strong and weak areas. Suggest quick and actionable steps for improvement. "
+    "Keep your response short, clear, and helpful. Respond in plain text with no markdown."
+)
+    
+    try:
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        response = model.generate_content(prompt)
+        help_text = response.text.strip().replace("```", "").strip()
+        return {"help": help_text}
+    except Exception as e:
+        print("Error generating study help:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/study-help")
 async def study_help(request: StudyHelpRequest):
     prompt = (
@@ -90,7 +112,7 @@ async def study_help(request: StudyHelpRequest):
 )
     
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content(prompt)
         help_text = response.text.strip().replace("```", "").strip()
         return {"help": help_text}
@@ -98,6 +120,25 @@ async def study_help(request: StudyHelpRequest):
         print("Error generating study help:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/ai-tutor")
+async def study_help(request: StudyHelpRequest):
+    prompt = (
+    "You are an AI tutor helping a student achieve their learning goals. "
+    f"Based on the student's input: \"{request.message}\", "
+    "analyze their strengths, weaknesses, and planned actions. "
+    "Provide a clear, concise study plan with prioritized topics, effective study techniques, and actionable steps to address weaknesses. "
+    "Keep the response brief and straightforward in plain text."
+    "Respond in plain text with no markdown."
+)
+
+    try:
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        response = model.generate_content(prompt)
+        help_text = response.text.strip().replace("```", "").strip()
+        return {"help": help_text}
+    except Exception as e:
+        print("Error generating study help:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Run the API with Uvicorn
 if __name__ == "__main__":
