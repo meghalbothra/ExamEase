@@ -21,7 +21,10 @@ if not GOOGLE_API_KEY:
 
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
-MODEL_NAME = "gemini-2.5-flash-lite"
+print("Available models:")
+
+for model in client.models.list():
+    print(model.name)
 
 session_context = {}
 
