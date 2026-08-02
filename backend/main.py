@@ -21,7 +21,7 @@ if not GOOGLE_API_KEY:
 
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
-MODEL_NAME = "gemini-2.5-flash-lite"
+MODEL_NAME ="gemini-3.6-flash"
 
 print("Available models:")
 
