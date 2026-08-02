@@ -117,7 +117,7 @@ export function QuizSummary({ score, totalQuestions, feedback, results, onRestar
   
       try {
         // Send study-guide insights to the backend
-        const response = await axios.post("http://localhost:8000/ai-tutor", {
+        const response = await axios.post("https://examease-u7vq.onrender.com/ai-tutor", {
           message: summaryMessage,
         });
   
