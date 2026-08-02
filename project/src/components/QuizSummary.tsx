@@ -79,7 +79,7 @@ export function QuizSummary({ score, totalQuestions, feedback, results, onRestar
         .join("\n\n")
 
       try {
-        const response = await axios.post("http://localhost:8000/summary-insights", {
+        const response = await axios.post("https://examease-u7vq.onrender.com/summary-insights", {
           message: summaryMessage,
         })
 
@@ -168,7 +168,7 @@ export function QuizSummary({ score, totalQuestions, feedback, results, onRestar
   
     try {
       // Send message to AI tutor API
-      const response = await axios.post("http://localhost:8000/study-help", {
+      const response = await axios.post("https://examease-u7vq.onrender.com/study-help", {
         message: userMessage,
         context: quizContext,
         score,
